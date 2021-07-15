@@ -1,5 +1,5 @@
 # KalmanFilter
-A direct implementation of the Kalman Filter
+A direct implementation of the Kalman Filter and Kalman Predictor.
 
 To install all needed packages:
 
