@@ -71,7 +71,7 @@ class System:    # Example System to follow with KF
         
     def step(self, A, F, C, G):  # A(k), F(k), C(k), G(k)
         K = F @ np.random.normal(self.mu_d, self.sigma_d, self.err_dim)    
-        self.x = A @ self.x + K.T   # For some reason F@random.. changes from 2x1 matrix to 1x2, maybe K is considered a vector
+        self.x = A @ self.x + K.T   # For some reason F@random.. changes from 2x1 matrix to 1x2, maybe K is considered a numpy array
         R = G @ np.random.normal(self.mu_d, self.sigma_d, self.err_dim)
         self.y = C @ self.x + R.T
         self.k += 1
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     noise_y = []
     
     SIM_TIME = 50
-    steps = range(1,SIM_TIME+1)
+    steps = range(1, SIM_TIME+1)
     
     
     for i in steps:
