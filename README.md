@@ -16,7 +16,10 @@ To install all needed packages:
  
  ![plot](https://github.com/0xbadc0ffe/KalmanFilter/blob/main/fig_2.png)
  
+ Predictions (X1p, X2p) compared to the real state (X1, X2). Predictions are avaible a step before the actual state.
+ 
+ ![plot](https://github.com/0xbadc0ffe/KalmanFilter/blob/main/fig_3.png)
 
 ## To Implement
 
-`Kalman Predictor` `Extended Kalman Filter`
+`Extended Kalman Filter`
