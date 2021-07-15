@@ -16,7 +16,7 @@ class KalmanFilter:
     # xs(k+1) = A(k)xs(k) + F(k)*N(k)
     # ys(k)   = C(k)xs(k) + G(k)*N(k)
     
-    def __init__(self, P0, xsp0=np.array([0]), xs0=np.array([0]), k=0, Gain=None, Delp=None):
+    def __init__(self, P0, xsp0=np.matrix('0'), xs0=np.matrix('0'), k=0, Gain=None, Delp=None):
         # Step 1 -  Initialization
         self.xsp = xsp0             # Optimal prediction xs(k| k-1)  xs(k| k-1) = A(k-1)*xs(k-1)
         self.xs = xs0               # Optimal estimate xs(k) = A(k-1)*xs(k-1) + Pi_k(k)[Ys(k) - C(k)*A(k-1)*xs(k-1)]
@@ -57,8 +57,8 @@ class KalmanFilter:
     
 class System:    # Example System to follow with KF 
     
-    # xs(k+1) = A(k)xs(k) + F(k)*N(k)
-    # ys(k)   = C(k)xs(k) + G(k)*N(k)
+    # x(k+1) = A(k)x(k) + F(k)*N(k)
+    # y(k)   = C(k)x(k) + G(k)*N(k)
 
     def __init__(self, x0=np.matrix('0'), k=0, err_dim=1, sigma_d=0.1, mu_d=0):
         self.x = x0
@@ -85,8 +85,6 @@ if __name__ == "__main__":
     os.system(CLEAR_STR)
     
     xs0 = np.matrix('0;0')
-    #P0  = np.matrix('1 2; 3 4')
-    #P0 = np.array([0])
     P0 = np.matrix('0 0; 0 0')
     
     A = np.matrix('-0.6 -0.8; 0.8 -0.6')
