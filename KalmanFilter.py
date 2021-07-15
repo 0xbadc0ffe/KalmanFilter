@@ -131,8 +131,8 @@ if __name__ == "__main__":
     noise_x1 = []
     noise_x2 = []
     noise_y = []
-    track_x1p = []
-    track_x2p = []
+    track_x1p = [xs0[0]]
+    track_x2p = [xs0[1]]
     
     
     SIM_TIME = 50
@@ -155,14 +155,18 @@ if __name__ == "__main__":
         print(f"\nState X({k}):          \n{x}\n\nOutput Y({k}):         \n{y}")
         
         
+        # Kalman Filter Step => estimate of x(k)
         xs, xsp, P, k = KF.step(y,A,F,C,G)
+        track_x1s.append(float(xs[0]))
+        track_x2s.append(float(xs[1]))
+        
+        # Kalman Predictor Step => x(k+1|k)
         xspp, _ = KFP.step_predictor(y,A,F,C,G)
         track_x1p.append(float(xspp[0]))
         track_x2p.append(float(xspp[1]))
 
-        track_x1s.append(float(xs[0]))
-        track_x2s.append(float(xs[1]))
         print(f"\n\n\nEstimate X({k}):       \n{xs}\n\nPrediction X({k}|{k-1}):     \n{xsp}")
+        print(f"\n\nPrediction X({k+1}|{k}):     \n{xspp}")
         print(f"\n\n\nERR: \n{x-xs}")
         track_err1.append(float(x[0]-xs[0]))
         track_err2.append(float(x[1]-xs[1]))
@@ -235,16 +239,17 @@ if __name__ == "__main__":
     axs5[1].plot(steps,track_x2s, label="X2s")
     axs5[1].legend(loc="upper right")
     
+    
     fig6, axs6 = plt.subplots(2)
     fig6.suptitle('State Prediction')
     axs6[0].set_title("X1, X1-predicted")
     axs6[0].plot(steps,track_x1, label="X1 ")
-    axs6[0].plot(steps_pred,[0]+track_x1p, label="X1p")
+    axs6[0].plot(steps_pred, track_x1p, label="X1p")
     #axs6[0].plot(steps,track_x1s, label="X1s")
     axs6[0].legend(loc="upper right")
     axs6[1].set_title("X2, X2-predicted")
     axs6[1].plot(steps,track_x2, label="X2")
-    axs6[1].plot(steps_pred,[0]+track_x2p, label="X2p")
+    axs6[1].plot(steps_pred, track_x2p, label="X2p")
     #axs6[1].plot(steps,track_x2s, label="X2s")
     axs6[1].legend(loc="upper right")
     
