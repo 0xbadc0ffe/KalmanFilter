@@ -16,17 +16,24 @@ class KalmanFilter:
     # xs(k+1) = A(k)xs(k) + F(k)*N(k)
     # ys(k)   = C(k)xs(k) + G(k)*N(k)
     
-    def __init__(self, P0, xsp0=np.matrix('0'), xs0=np.matrix('0'), k=0, Gain=None, Delp=None):
+    def __init__(self, P0, xsp0=np.matrix('0'), xs0=np.matrix('0'), k=0, Gain=None, Delp=None, Gain_hat=None):
         # Step 1 -  Initialization
         self.xsp = xsp0             # Optimal prediction xs(k| k-1)  xs(k| k-1) = A(k-1)*xs(k-1)
         self.xs = xs0               # Optimal estimate xs(k) = A(k-1)*xs(k-1) + Pi_k(k)[Ys(k) - C(k)*A(k-1)*xs(k-1)]
-                                    # initialization => xs(0|-1) = xs(0) = 0 mandatory for optimality                             
+                                    # initialization => xs(0|-1) = xs(0) = 0 mandatory for optimality  
         self.P = P0                 # Error covariance P(k) = [I - Pi_k(k)*C(k)]*Delp(k) => P(0) = covariance of xs(0)
         self.k = k                  # Step k
         
+        if Delp is None:
+            self.Delp = P0          # Error prediction covariance Delp(k) = A(k-1)*P(k-1)*A(k-1)^T + F(k-1)*F^T(k-1)
+        else:                       # Delp(k) = P(k| k-1)    
+            self.Delp = Delp        
+                                    
         self.Gain = Gain            # Gain Matrix Pi_k(k) = Delp(k)*C(k)^T*[C(k)*Delp(k)*C(k)^T +G(k)*G(k)^T]^-1
-        self.Delp = Delp            # Error prediction covariance Delp(k) = A(k-1)*P(k-1)*A(k-1)^T + F(k-1)*F^T(k-1)
-                                    # Delp(k) = P(k| k-1)
+        
+        self.xspp = xs0             # State Predictor xs(k+1|k), used in Kalman Predictor
+        self.Gain_hat = Gain_hat    # Predictor Gain Pi_k_hat(k) = A(k)*Delp(k)*C(k)^T*[C(k)*Delp(k)*C(k)^T +G(k)*G(k)^T]^-1
+    
         
     def step(self, ysk, A, F, Ck, Gk):    # Ys(k), A(k-1), F(k-1), C(k), G(k)
     
@@ -51,7 +58,25 @@ class KalmanFilter:
         
         return self.xs, self.xsp, self.P, self.k
     
-    #def step_predictor  # Kalman Predictor
+    # Kalman Predictor
+    def step_predictor(self, ysk, A, F, C, G):    # Ys(k), A(k), F(k), C(k), G(k)
+    
+        # Step 2 - Predictor Gain
+        Cov_out_inn =  C @ self.Delp @ C.T + G @ G.T
+        self.Gain_hat = A @ self.Delp @ C.T @ Cov_out_inn.I
+        
+        # Step 3 - Optimal predictor
+        self.xspp = A @ self.xspp + self.Gain_hat @ (ysk - C @ self.xspp)                    # X(k+1| k)
+            
+        # Step 4 - Covariance
+        self.Delp = A @ self.Delp @ A.T - self.Gain_hat @ C @ self.Delp @ A.T + F @ F.T      # Delp(k+1)
+        
+        # Step 5 - k -> k+1
+        self.k += 1
+        
+        return self.xspp, self.k
+        
+
     #def step_extended   # Extended Kalman Filter
     
     
@@ -93,6 +118,7 @@ if __name__ == "__main__":
     G = np.matrix('1')
     
     KF  = KalmanFilter(P0,xs0=xs0,xsp0=xs0)
+    KFP = KalmanFilter(P0,xs0=xs0,xsp0=xs0)
     Sys = System(xs0,sigma_d=1)
     
     output = []
@@ -105,9 +131,13 @@ if __name__ == "__main__":
     noise_x1 = []
     noise_x2 = []
     noise_y = []
+    track_x1p = []
+    track_x2p = []
+    
     
     SIM_TIME = 50
     steps = range(1, SIM_TIME+1)
+    steps_pred = range(1, SIM_TIME+2)
     
     
     for i in steps:
@@ -126,6 +156,10 @@ if __name__ == "__main__":
         
         
         xs, xsp, P, k = KF.step(y,A,F,C,G)
+        xspp, _ = KFP.step_predictor(y,A,F,C,G)
+        track_x1p.append(float(xspp[0]))
+        track_x2p.append(float(xspp[1]))
+
         track_x1s.append(float(xs[0]))
         track_x2s.append(float(xs[1]))
         print(f"\n\n\nEstimate X({k}):       \n{xs}\n\nPrediction X({k}|{k-1}):     \n{xsp}")
@@ -200,6 +234,19 @@ if __name__ == "__main__":
     axs5[1].plot(steps,anoised_x2, label="X2 -noise")
     axs5[1].plot(steps,track_x2s, label="X2s")
     axs5[1].legend(loc="upper right")
+    
+    fig6, axs6 = plt.subplots(2)
+    fig6.suptitle('State Prediction')
+    axs6[0].set_title("X1, X1-predicted")
+    axs6[0].plot(steps,track_x1, label="X1 ")
+    axs6[0].plot(steps_pred,[0]+track_x1p, label="X1p")
+    #axs6[0].plot(steps,track_x1s, label="X1s")
+    axs6[0].legend(loc="upper right")
+    axs6[1].set_title("X2, X2-predicted")
+    axs6[1].plot(steps,track_x2, label="X2")
+    axs6[1].plot(steps_pred,[0]+track_x2p, label="X2p")
+    #axs6[1].plot(steps,track_x2s, label="X2s")
+    axs6[1].legend(loc="upper right")
     
     
     plt.show()
