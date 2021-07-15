@@ -16,3 +16,7 @@ To install all needed packages:
  
  ![plot](https://github.com/0xbadc0ffe/KalmanFilter/blob/main/fig_2.png)
  
+
+## To Implement
+
+`Kalman Predictor` `Extended Kalman Filter`
