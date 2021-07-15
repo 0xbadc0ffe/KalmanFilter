@@ -131,8 +131,8 @@ if __name__ == "__main__":
     noise_x1 = []
     noise_x2 = []
     noise_y = []
-    track_x1p = [xs0[0]]
-    track_x2p = [xs0[1]]
+    track_x1p = [float(xs0[0])]
+    track_x2p = [float(xs0[1])]
     
     
     SIM_TIME = 50
